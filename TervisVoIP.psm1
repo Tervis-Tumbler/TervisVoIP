@@ -1,4 +1,13 @@
-﻿function Invoke-TervisVOIPTerminateUser {
+﻿$VoIPUserDefinition = [PSCustomObject][Ordered]@{
+    Name = "JabberOnly"
+    CallingSearchSpace = "TPA_CSS"
+},
+[PSCustomObject][Ordered]@{
+    Name = "ContactCenter"
+    CallingSearchSpace = "UCCX_CSS"
+}
+
+function Invoke-TervisVOIPTerminateUser {
     param (
         [Parameter(Mandatory)]$SamAccountName
     )
