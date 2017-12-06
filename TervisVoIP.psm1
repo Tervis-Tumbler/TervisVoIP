@@ -131,6 +131,9 @@ function New-TervisCiscoJabber {
     param (
         [Parameter(Mandatory)][String]$UserID
     )
+
+    $ADUser = Get-ADUser $UserID
+    if (-not $ADUser) { Throw "No ADUser with identity $UserID"}
     
     $Pattern = Find-CUCMLine -Pattern 4% -Description "" | select -First 1
     Set-ADUser $UserID -OfficePhone $Pattern
@@ -140,7 +143,6 @@ function New-TervisCiscoJabber {
         sleep -Seconds 3
     } until (Get-CUCMUser -UserID $UserID -ErrorAction SilentlyContinue)
 
-    $ADUser = Get-ADUser $UserID
     $DisplayName = $ADUser.name
     $DeviceName = "CSF"
         
