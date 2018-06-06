@@ -135,7 +135,7 @@ function New-TervisCiscoJabber {
     $ADUser = Get-ADUser $UserID
     if (-not $ADUser) { Throw "No ADUser with identity $UserID"}
     
-    $Pattern = Find-CUCMLine -Pattern 4% -Description "" | select -First 1
+    $Pattern = Find-CUCMLine -Pattern 7% -Description "" | select -First 1
     Set-ADUser $UserID -OfficePhone $Pattern
     Sync-CUCMtoLDAP -LDAPDirectory TERV_AD
 
