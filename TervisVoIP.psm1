@@ -228,3 +228,67 @@ function New-TervisCiscoJabber {
         CSS = "TPA_CSS"
     }
 }
+function Import-TervisCsOnlineSession {
+
+    $Sessions = Get-PsSession |
+    Where ComputerName -eq "admin2a.online.lync.com" |
+    Where ConfigurationName -eq "Microsoft.PowerShell"
+    
+    $Sessions |
+    Where State -eq "Broken" |
+    Remove-PSSession
+    $Session = $Sessions |
+    Where State -eq "Opened" |
+    Select -First 1
+
+    if (-Not $Session) {
+        New-CsOnlineSession -UserName "$env:USERNAME@$env:USERDOMAIN.com" | Out-Null
+        $Session = Get-PsSession |
+        Where ComputerName -eq "admin2a.online.lync.com" |
+        Where ConfigurationName -eq "Microsoft.PowerShell" |
+        Where State -eq "Opened" |
+        Select -First 1
+        Import-Module -Global  (Import-PSSession -DisableNameChecking -AllowClobber $Session)
+    }
+    Import-Module -Global (Import-PSSession -AllowClobber -DisableNameChecking $Session)
+}
+
+function Set-MicrosoftTeamsPhoneNumber {
+    param (
+        $UserID,
+        $LocationID
+    )
+    $phoneNumber = Get-CsOnlineTelephoneNumber | where TargetType -Like "" | select -ExpandProperty Id -First 1
+    
+    While (-not (Get-CsOnlineVoiceUser -Identity $UserID | Where-Object PSTNConnectivity -Like "Online" )) {
+        
+        Start-Sleep 60
+    }
+    Set-CsOnlineVoiceUser -Identity $UserID -TelephoneNumber $phoneNumber -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
+}
+
+function New-TervisMicrosoftTeamPhone {
+    param (
+        [Parameter(Mandatory)][String]$UserID,
+        [Parameter(Mandatory)][String]$LocationID
+    )
+    Connect-TervisMsolService
+    
+    $PhoneSystemSKU = Get-MsolAccountSku |
+    Where-Object {$_.AccountSkuID -match "MCOEV"} |
+    Select-Object -ExpandProperty AccountSkuID
+
+    $CallingPlanSKU = Get-MsolAccountSku |
+    Where-Object {$_.AccountSkuID -match "MCOPSTN1"} |
+    Select-Object -ExpandProperty AccountSkuID
+    
+    Set-MsolUserLicense -UserPrincipalName $UserID@tervis.com -AddLicenses $PhoneSystemSKU
+    Set-MsolUserLicense -UserPrincipalName $UserID@tervis.com -AddLicenses $CallingPlanSKU
+    
+    Import-TervisCsOnlineSession
+
+    Set-MicrosoftTeamsPhoneNumber -UserID $UserID -LocationID $LocationID
+    Grant-CsTeamsUpgradePolicy -PolicyName tag:UpgradeToTeams -Identity $UserID@tervis.com
+    Grant-CsTeamsInteropPolicy -PolicyName tag:DisallowOverrideCallingTeamsChatTeams -Identity $UserID@tervis.com
+}
+
