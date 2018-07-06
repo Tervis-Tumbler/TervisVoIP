@@ -1,4 +1,7 @@
-﻿$VoIPUserDefinition = [PSCustomObject][Ordered]@{
+﻿$ModulePath = (Get-Module -ListAvailable TervisVoIP).ModuleBase
+. $ModulePath\Definition.ps1
+
+$VoIPUserDefinition = [PSCustomObject][Ordered]@{
     Name = "JabberOnly"
     CallingSearchSpace = "TPA_CSS"
 },
@@ -291,4 +294,69 @@ function New-TervisMicrosoftTeamPhone {
     Grant-CsTeamsUpgradePolicy -PolicyName tag:UpgradeToTeams -Identity $UserID@tervis.com
     Grant-CsTeamsInteropPolicy -PolicyName tag:DisallowOverrideCallingTeamsChatTeams -Identity $UserID@tervis.com
 }
+
+function Get-TervisMicrosoftCallingPlan {
+    param (
+    $Name
+    )
+
+    $MicrosoftCallingPlanName | where Name -EQ $Name
+}
+
+function Get-MicrosoftTeamVoipPricing {
+    param(
+        [int]$DomesticUsers,
+        [int]$InterNationalUsers,
+        [int]$Domestic120MintsUsers,
+        [int]$Domestic240MintsUsers
+    )
+    [decimal]$PhoneSystem = 6.6
+    $Domestic = Get-TervisMicrosoftCallingPlan -Name "MCOPSTN1"
+    $InterNational = Get-TervisMicrosoftCallingPlan -Name "MCOPSTN2"
+    $Domestic120 = Get-TervisMicrosoftCallingPlan -Name "MCOPSTN5"
+    $Domestic240 = Get-TervisMicrosoftCallingPlan -Name "MCOPSTN6"
+    
+    $DomesticPrice = $DomesticUsers * ($Domestic.UserMonthPrice + $PhoneSystem)
+    Write-Host "Price of Domestic Calling is "$DomesticPrice"" 
+    
+    $InterNationalPrice = $InterNationalUsers * ($InterNational.UserMonthPrice + $PhoneSystem)
+    Write-Host "Price of International Calling is "$InterNationalPrice"" 
+    
+    $Domestic120MinPrice = $Domestic120MintsUsers * ($Domestic120.UserMonthPrice + $PhoneSystem)
+    Write-Host "Price of Domestic120Minutes Calling is "$Domestic120MinPrice""
+    
+    $Domestic240MinPrice = $Domestic240MintsUsers * ($Domestic240.UserMonthPrice + $PhoneSystem)
+    Write-Host "Price of Domestic240Minutes Calling is "$Domestic240MinPrice""
+    
+    $TotalPrice = $DomesticPrice + $InterNationalPrice + $Domestic120MinPrice + $Domestic240MinPrice
+    Write-Host "The total monthly Price is "$TotalPrice""
+    $TotalMinutes = ($DomesticUsers * $Domestic.MinutePermonth) + ($InterNationalUsers * $InterNational.MinutePerMonth) +
+                    ($Domestic120MintsUsers * $Domestic120.MinutePerMonth) + ($Domestic240MintsUsers * $Domestic240.MinutePerMonth)
+    Write-Host "The total Minutes is "$TotalMinutes""
+}
+
+function Get-CiscoCallingPlan {
+    param (
+    $Name
+    )
+    $CiscoCallingPlan | where Name -EQ $Name
+}
+
+function Get-CiscoPhonePricing {
+    param (
+        [int]$NumberOfUsers
+    )
+    [int]$WindstreamMonthlyCharge = 3602
+    [int]$VoiceGatewayMonthyCharge = 96
+    $Cer = Get-CiscoCallingPlan -Name CER
+    $CUCM = Get-CiscoCallingPlan -Name CUCM
+
+    $CerMonthlyCharge = $Cer.UserMonthPrice * $NumberOfUsers
+    $CucmMonthlyCharge = $CUCM.UserMonthPrice * $NumberOfUsers
+
+    $TotalMonthlyCharge = ($CerMonthlyCharge + $CucmMonthlyCharge + $WindstreamMonthlyCharge + $VoiceGatewayMonthyCharge)
+    Write-Host "The total Monthly Charge is  is "$TotalMonthlyCharge""
+    
+}
+
 
