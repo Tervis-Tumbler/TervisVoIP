@@ -234,23 +234,23 @@ function New-TervisCiscoJabber {
 function Import-TervisCsOnlineSession {
 
     $Sessions = Get-PsSession |
-    Where ComputerName -eq "admin2a.online.lync.com" |
-    Where ConfigurationName -eq "Microsoft.PowerShell"
+    Where-Object ComputerName -eq "admin2a.online.lync.com" |
+    Where-Object ConfigurationName -eq "Microsoft.PowerShell"
     
     $Sessions |
-    Where State -eq "Broken" |
+    Where-Object State -eq "Broken" |
     Remove-PSSession
     $Session = $Sessions |
-    Where State -eq "Opened" |
-    Select -First 1
+    Where-Object State -eq "Opened" |
+    Select-Object -First 1
 
     if (-Not $Session) {
         New-CsOnlineSession -UserName "$env:USERNAME@$env:USERDOMAIN.com" | Out-Null
         $Session = Get-PsSession |
-        Where ComputerName -eq "admin2a.online.lync.com" |
-        Where ConfigurationName -eq "Microsoft.PowerShell" |
-        Where State -eq "Opened" |
-        Select -First 1
+        Where-Object ComputerName -eq "admin2a.online.lync.com" |
+        Where-Object ConfigurationName -eq "Microsoft.PowerShell" |
+        Where-Object State -eq "Opened" |
+        Select-Object -First 1
         Import-Module -Global  (Import-PSSession -DisableNameChecking -AllowClobber $Session)
     }
     Import-Module -Global (Import-PSSession -AllowClobber -DisableNameChecking $Session)
@@ -261,7 +261,7 @@ function Set-MicrosoftTeamsPhoneNumber {
         $UserID,
         $LocationID
     )
-    $phoneNumber = Get-CsOnlineTelephoneNumber | where TargetType -Like "" | select -ExpandProperty Id -First 1
+    $phoneNumber = Get-CsOnlineTelephoneNumber | Where-Object TargetType -Like "" | select -ExpandProperty Id -First 1
     
     While (-not (Get-CsOnlineVoiceUser -Identity $UserID | Where-Object PSTNConnectivity -Like "Online" )) {
         
@@ -273,7 +273,7 @@ function Set-MicrosoftTeamsPhoneNumber {
 function New-TervisMicrosoftTeamPhone {
     param (
         [Parameter(Mandatory)][String]$UserID,
-        [Parameter(Mandatory)][String]$LocationID
+        [Parameter(Mandatory)][ValidateSet("d99a1eb3-f053-448a-86ec-e0d515dc0dea")][String]$LocationID
     )
     Connect-TervisMsolService
     
@@ -300,7 +300,7 @@ function Get-TervisMicrosoftCallingPlan {
     $Name
     )
 
-    $MicrosoftCallingPlanName | where Name -EQ $Name
+    $MicrosoftCallingPlanName | Where-Object Name -EQ $Name
 }
 
 function Get-MicrosoftTeamVoipPricing {
@@ -339,7 +339,7 @@ function Get-CiscoCallingPlan {
     param (
     $Name
     )
-    $CiscoCallingPlan | where Name -EQ $Name
+    $CiscoCallingPlan | Where-Object Name -EQ $Name
 }
 
 function Get-CiscoPhonePricing {
