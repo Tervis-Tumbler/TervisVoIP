@@ -261,13 +261,14 @@ function Set-MicrosoftTeamsPhoneNumber {
         $UserID,
         $LocationID
     )
-    $phoneNumber = Get-CsOnlineTelephoneNumber | Where-Object TargetType -Like "" | select -ExpandProperty Id -First 1
+    $phoneNumber = Get-CsOnlineTelephoneNumber | Where-Object TargetType -Like "" | Select-Object -ExpandProperty Id -First 1
     
     While (-not (Get-CsOnlineVoiceUser -Identity $UserID | Where-Object PSTNConnectivity -Like "Online" )) {
         
         Start-Sleep 60
     }
     Set-CsOnlineVoiceUser -Identity $UserID -TelephoneNumber $phoneNumber -LocationID "d99a1eb3-f053-448a-86ec-e0d515dc0dea"
+    Set-ADUser $UserID -OfficePhone $phoneNumber
 }
 
 function New-TervisMicrosoftTeamPhone {
@@ -282,7 +283,7 @@ function New-TervisMicrosoftTeamPhone {
     Select-Object -ExpandProperty AccountSkuID
 
     $CallingPlanSKU = Get-MsolAccountSku |
-    Where-Object {$_.AccountSkuID -match "MCOPSTN1"} |
+    Where-Object {$_.AccountSkuID -match "MCOPSTN_5"} |
     Select-Object -ExpandProperty AccountSkuID
     
     Set-MsolUserLicense -UserPrincipalName $UserID@tervis.com -AddLicenses $PhoneSystemSKU
