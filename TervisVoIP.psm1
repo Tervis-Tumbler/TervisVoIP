@@ -275,6 +275,7 @@ function New-TervisMicrosoftTeamPhone {
     param (
         [Parameter(Mandatory)][String]$UserID,
         [Parameter(Mandatory)][ValidateSet("d99a1eb3-f053-448a-86ec-e0d515dc0dea")][String]$LocationID
+        
     )
     Connect-TervisMsolService
     
@@ -294,6 +295,10 @@ function New-TervisMicrosoftTeamPhone {
     Set-MicrosoftTeamsPhoneNumber -UserID $UserID -LocationID $LocationID
     Grant-CsTeamsUpgradePolicy -PolicyName tag:UpgradeToTeams -Identity $UserID@tervis.com
     Grant-CsTeamsInteropPolicy -PolicyName tag:DisallowOverrideCallingTeamsChatTeams -Identity $UserID@tervis.com
+    
+    Import-TervisOffice365ExchangePSSession
+
+    Import-O365ContactList -CSV -CSVData ([System.IO.File]::ReadAllBytes("\\tervis.prv\applications\PowerShell\TervisGeneralOutlookContact\contact.CSV")) -Identity $UserID@tervis.com
 }
 
 function Get-TervisMicrosoftCallingPlan {
