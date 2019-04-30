@@ -294,7 +294,7 @@ function New-TervisMicrosoftTeamPhone {
 
     Set-MicrosoftTeamsPhoneNumber -UserID $UserID -LocationID $LocationID
     Grant-CsTeamsUpgradePolicy -PolicyName tag:UpgradeToTeams -Identity $UserID@tervis.com
-    Grant-CsTeamsInteropPolicy -PolicyName tag:DisallowOverrideCallingTeamsChatTeams -Identity $UserID@tervis.com
+    
     
     Import-TervisOffice365ExchangePSSession
 
